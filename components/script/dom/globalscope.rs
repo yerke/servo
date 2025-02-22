@@ -579,10 +579,10 @@ impl MessageListener {
 }
 
 /// Callback used to enqueue file chunks to streams as part of FileListener.
-fn stream_handle_incoming(stream: &ReadableStream, bytes: Fallible<Vec<u8>>) {
+fn stream_handle_incoming(stream: &ReadableStream, bytes: Fallible<Vec<u8>>, can_gc: CanGc) {
     match bytes {
         Ok(b) => {
-            stream.enqueue_native(b);
+            stream.enqueue_native(b, can_gc);
         },
         Err(e) => {
             stream.error_native(e);
@@ -596,7 +596,7 @@ fn stream_handle_eof(stream: &ReadableStream) {
 }
 
 impl FileListener {
-    fn handle(&mut self, msg: FileManagerResult<ReadFileProgress>) {
+    fn handle(&mut self, msg: FileManagerResult<ReadFileProgress>, can_gc: CanGc) {
         match msg {
             Ok(ReadFileProgress::Meta(blob_buf)) => match self.state.take() {
                 Some(FileListenerState::Empty(target)) => {
@@ -605,7 +605,7 @@ impl FileListener {
 
                         let task = task!(enqueue_stream_chunk: move || {
                             let stream = trusted.root();
-                            stream_handle_incoming(&stream, Ok(blob_buf.bytes));
+                            stream_handle_incoming(&stream, Ok(blob_buf.bytes), can_gc);
                         });
                         self.task_source.queue(task);
 
@@ -627,7 +627,7 @@ impl FileListener {
 
                         let task = task!(enqueue_stream_chunk: move || {
                             let stream = trusted.root();
-                            stream_handle_incoming(&stream, Ok(bytes_in));
+                            stream_handle_incoming(&stream, Ok(bytes_in), can_gc);
                         });
 
                         self.task_source.queue(task);
@@ -683,7 +683,7 @@ impl FileListener {
                         FileListenerTarget::Stream(trusted_stream) => {
                             self.task_source.queue(task!(error_stream: move || {
                                 let stream = trusted_stream.root();
-                                stream_handle_incoming(&stream, error);
+                                stream_handle_incoming(&stream, error, can_gc);
                             }));
                         },
                     }
@@ -1916,7 +1916,10 @@ impl GlobalScope {
         ROUTER.add_typed_route(
             recv.to_ipc_receiver(),
             Box::new(move |msg| {
-                file_listener.handle(msg.expect("Deserialization of file listener msg failed."));
+                file_listener.handle(
+                    msg.expect("Deserialization of file listener msg failed."),
+                    can_gc,
+                );
             }),
         );
 
@@ -1943,7 +1946,10 @@ impl GlobalScope {
         ROUTER.add_typed_route(
             recv.to_ipc_receiver(),
             Box::new(move |msg| {
-                file_listener.handle(msg.expect("Deserialization of file listener msg failed."));
+                file_listener.handle(
+                    msg.expect("Deserialization of file listener msg failed."),
+                    CanGc::note(),
+                );
             }),
         );
     }

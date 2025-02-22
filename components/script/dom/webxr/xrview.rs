@@ -101,7 +101,7 @@ impl XRViewMethods<crate::DomTypeHolder> for XRView {
             // row_major since euclid uses row vectors
             let proj = self.view.projection.to_array();
             self.proj
-                .set_data(cx, &proj)
+                .set_data(cx, &proj, CanGc::note())
                 .expect("Failed to set projection matrix.")
         }
         self.proj

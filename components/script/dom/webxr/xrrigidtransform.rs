@@ -170,7 +170,11 @@ impl XRRigidTransformMethods<crate::DomTypeHolder> for XRRigidTransform {
     fn Matrix(&self, _cx: JSContext) -> Float32Array {
         if !self.matrix.is_initialized() {
             self.matrix
-                .set_data(_cx, &self.transform.to_transform().to_array())
+                .set_data(
+                    _cx,
+                    &self.transform.to_transform().to_array(),
+                    CanGc::note(),
+                )
                 .expect("Failed to set on data on transform's internal matrix.")
         }
 

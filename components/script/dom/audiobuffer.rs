@@ -144,7 +144,10 @@ impl AudioBuffer {
                 // https://webaudio.github.io/web-audio-api/#acquire-the-content
                 // "Attach ArrayBuffers containing copies of the data to the AudioBuffer,
                 // to be returned by the next call to getChannelData()".
-                if channel.set_data(cx, &shared_channels.buffers[i]).is_err() {
+                if channel
+                    .set_data(cx, &shared_channels.buffers[i], CanGc::note())
+                    .is_err()
+                {
                     return false;
                 }
             }

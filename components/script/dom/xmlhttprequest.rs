@@ -1337,7 +1337,9 @@ impl XMLHttpRequest {
             let bytes = self.response.borrow();
 
             // If this is not successful, the response won't be set and the function will return None
-            self.response_arraybuffer.set_data(cx, &bytes).ok()?;
+            self.response_arraybuffer
+                .set_data(cx, &bytes, CanGc::note())
+                .ok()?;
         }
 
         // Return the correct ArrayBuffer

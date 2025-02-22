@@ -262,7 +262,7 @@ impl Gamepad {
             0., // Vertical axis for right stick (negative up/positive down)
         ];
         self.axes
-            .set_data(GlobalScope::get_cx(), &initial_axes)
+            .set_data(GlobalScope::get_cx(), &initial_axes, CanGc::note())
             .expect("Failed to set axes data on gamepad.")
     }
 

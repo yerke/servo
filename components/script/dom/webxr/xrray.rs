@@ -163,7 +163,7 @@ impl XRRayMethods<crate::DomTypeHolder> for XRRay {
                 .to_transform()
                 .to_array();
             self.matrix
-                .set_data(_cx, &arr)
+                .set_data(_cx, &arr, CanGc::note())
                 .expect("Failed to set matrix data on XRRAy.")
         }
 
