@@ -454,8 +454,9 @@ impl HTMLSelectElementMethods<crate::DomTypeHolder> for HTMLSelectElement {
         &self,
         element: HTMLOptionElementOrHTMLOptGroupElement,
         before: Option<HTMLElementOrLong>,
+        can_gc: CanGc,
     ) -> ErrorResult {
-        self.Options().Add(element, before)
+        self.Options(can_gc).Add(element, before, can_gc)
     }
 
     // https://html.spec.whatwg.org/multipage/#dom-fe-disabled
@@ -506,31 +507,31 @@ impl HTMLSelectElementMethods<crate::DomTypeHolder> for HTMLSelectElement {
     make_labels_getter!(Labels, labels_node_list);
 
     /// <https://html.spec.whatwg.org/multipage/#dom-select-options>
-    fn Options(&self) -> DomRoot<HTMLOptionsCollection> {
+    fn Options(&self, can_gc: CanGc) -> DomRoot<HTMLOptionsCollection> {
         self.options.or_init(|| {
             let window = self.owner_window();
-            HTMLOptionsCollection::new(&window, self, Box::new(OptionsFilter), CanGc::note())
+            HTMLOptionsCollection::new(&window, self, Box::new(OptionsFilter), can_gc)
         })
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-select-length>
     fn Length(&self) -> u32 {
-        self.Options().Length()
+        self.Options(CanGc::note()).Length()
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-select-length>
     fn SetLength(&self, length: u32, can_gc: CanGc) {
-        self.Options().SetLength(length, can_gc)
+        self.Options(can_gc).SetLength(length, can_gc)
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-select-item>
-    fn Item(&self, index: u32) -> Option<DomRoot<Element>> {
-        self.Options().upcast().Item(index)
+    fn Item(&self, index: u32, can_gc: CanGc) -> Option<DomRoot<Element>> {
+        self.Options(can_gc).upcast().Item(index)
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-select-item>
-    fn IndexedGetter(&self, index: u32) -> Option<DomRoot<Element>> {
-        self.Options().IndexedGetter(index)
+    fn IndexedGetter(&self, index: u32, can_gc: CanGc) -> Option<DomRoot<Element>> {
+        self.Options(can_gc).IndexedGetter(index)
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-select-setter>
@@ -540,24 +541,24 @@ impl HTMLSelectElementMethods<crate::DomTypeHolder> for HTMLSelectElement {
         value: Option<&HTMLOptionElement>,
         can_gc: CanGc,
     ) -> ErrorResult {
-        self.Options().IndexedSetter(index, value, can_gc)
+        self.Options(can_gc).IndexedSetter(index, value, can_gc)
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-select-nameditem>
-    fn NamedItem(&self, name: DOMString) -> Option<DomRoot<HTMLOptionElement>> {
-        self.Options()
+    fn NamedItem(&self, name: DOMString, can_gc: CanGc) -> Option<DomRoot<HTMLOptionElement>> {
+        self.Options(can_gc)
             .NamedGetter(name)
             .and_then(DomRoot::downcast::<HTMLOptionElement>)
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-select-remove>
-    fn Remove_(&self, index: i32) {
-        self.Options().Remove(index)
+    fn Remove_(&self, index: i32, can_gc: CanGc) {
+        self.Options(can_gc).Remove(index, can_gc)
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-select-remove>
-    fn Remove(&self) {
-        self.upcast::<Element>().Remove(CanGc::note())
+    fn Remove(&self, can_gc: CanGc) {
+        self.upcast::<Element>().Remove(can_gc)
     }
 
     /// <https://html.spec.whatwg.org/multipage/#dom-select-value>
